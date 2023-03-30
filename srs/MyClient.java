@@ -1,57 +1,90 @@
 import java.io.*;
 import java.net.*;
 
-public class Week4Client {
+public class MyClient {
 
     Socket socket;
+
     public static void main(String[] args) {
         try {
 
+            // Create a socket with input and output
             Socket s = new Socket("localhost", 50000);
-            
             DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-
-            dout.write(("HELO\n").getBytes());
-
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
-            String str = (String) in.readLine();
+            // Authenticate
+            dout.write(("HELO\n").getBytes());
+            String str = (String) in.readLine(); // Is it neccersary to check for 'OK'?
             System.out.println("message=" + str);
 
             dout.write(("AUTH lewis\n").getBytes());
-
             String str2 = (String) in.readLine();
             System.out.println("message=" + str2);
 
             dout.write(("REDY\n").getBytes());
+            String jobN = (String) in.readLine(); // Client sends first job
+            System.out.println("message=" + jobN);
 
-            String str3 = (String) in.readLine();
-            System.out.println("message=" + str3);
+            dout.write(("GETS All\n").getBytes());
+            String dataN = (String) in.readLine();
+            System.out.println("message=" + dataN);
 
-            dout.write(("GETS Capable 2 300 500\n").getBytes());
+            // Sort through data message
+            String[] dataSplit = dataN.split(" ", 3);
+            int numberOfRecords = Integer.valueOf(dataSplit[1]);
 
-            String str4 = (String) in.readLine();
-            System.out.println("message=" + str4);
-
+            // Respond with OK to recieve GETS records
             dout.write(("OK\n").getBytes());
-            String str5= (String) in.readLine();
-            System.out.println("message=" + str5);
 
+            String tempServerType = "";
+            String biggestServerType = "";
+            String tempRecord = "";
+            //int numberOfLargestServers = 1;
+            //int numberOfCores = 0;
+
+            for (int i = 0; i < numberOfRecords; i++) {
+
+                tempRecord = (String) in.readLine();
+                String[] tempRecordSplit = tempRecord.split(" ", 8);
+
+                tempServerType = tempRecordSplit[0];
+
+                if (!tempServerType.equals(biggestServerType)) {
+                    biggestServerType = tempServerType;
+                    //numberOfLargestServers = 1;
+                    //numberOfCores = Integer.parseInt(tempRecordSplit[4]);
+
+                } else {
+                    //numberOfLargestServers++;
+                }
+            }
+
+            //After recieving GETS records
             dout.write(("OK\n").getBytes());
-            String str6= (String) in.readLine();
-            System.out.println("message=" + str6);
+            String noMoreInfo = (String) in.readLine();
+            System.out.println("message=" + noMoreInfo);
+            dout.write(("REDY\n").getBytes());
 
-            dout.write(("OK\n").getBytes());
-            String str7= (String) in.readLine();
-            System.out.println("message=" + str7);
+            String loopMessage = (String) in.readLine();
+            System.out.println("message=" + loopMessage);
+            int counter = 0;
 
-            dout.write(("SCHD 0 small 0\n").getBytes());
+            while(loopMessage.substring(0, 4).equals("JOBN")){
 
-            String str8= (String) in.readLine();
-            System.out.println("message=" + str8);
+                int currentJobID = ParseJobN(loopMessage);
+
+                String schdMessage = "SCHD " + currentJobID + " " + biggestServerType + " " + counter +"\n";
+                dout.write((schdMessage).getBytes());
+
+                loopMessage = (String) in.readLine();   //server sends message saying that the job is beign scheduled
+
+                dout.write(("REDY").getBytes());
+                loopMessage = (String) in.readLine();   //If there a more jobs, then JOBN is sent
+            }
 
             dout.write(("QUIT\n").getBytes());
-            String str9= (String) in.readLine();
+            String str9 = (String) in.readLine();
             System.out.println("message=" + str9);
 
             dout.flush();
@@ -61,6 +94,17 @@ public class Week4Client {
         } catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+    public static int ParseJobN(String inputJobN){
+
+        String[] InputJobNSplit = inputJobN.split(" ", 7);
+        String jobID = InputJobNSplit[2];
+        //String coresRequirement = jobNSplit[4];
+        //String memoryRequirement = jobNSplit[5];
+        //String diskRequirement = jobNSplit[6];
+
+        return Integer.parseInt(jobID);
     }
 
 }
