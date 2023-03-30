@@ -37,26 +37,28 @@ public class MyClient {
             // Respond with OK to recieve GETS records
             dout.write(("OK\n").getBytes());
 
-            String tempServerType = "";
             String biggestServerType = "";
             String tempRecord = "";
-            //int numberOfLargestServers = 1;
-            //int numberOfCores = 0;
+            
+            int numberOfLargestServers = 1;
+            int tempNumCores = 0;
+            int greatestNumCores = 0;
 
             for (int i = 0; i < numberOfRecords; i++) {
 
                 tempRecord = (String) in.readLine();
                 String[] tempRecordSplit = tempRecord.split(" ", 8);
 
-                tempServerType = tempRecordSplit[0];
+                tempNumCores = Integer.parseInt(tempRecordSplit[4]);
 
-                if (!tempServerType.equals(biggestServerType)) {
-                    biggestServerType = tempServerType;
-                    //numberOfLargestServers = 1;
-                    //numberOfCores = Integer.parseInt(tempRecordSplit[4]);
+                if (tempNumCores > greatestNumCores) {
+
+                    biggestServerType = tempRecordSplit[0];
+                    numberOfLargestServers = 1;
+                    greatestNumCores = tempNumCores;
 
                 } else {
-                    //numberOfLargestServers++;
+                    numberOfLargestServers++;
                 }
             }
 
@@ -79,8 +81,13 @@ public class MyClient {
 
                 loopMessage = (String) in.readLine();   //server sends message saying that the job is beign scheduled
 
-                dout.write(("REDY").getBytes());
+                dout.write(("REDY\n").getBytes());
                 loopMessage = (String) in.readLine();   //If there a more jobs, then JOBN is sent
+
+                counter++;
+                if(counter == numberOfLargestServers){
+                    counter = 0;
+                }
             }
 
             dout.write(("QUIT\n").getBytes());
