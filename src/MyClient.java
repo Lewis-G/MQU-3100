@@ -13,22 +13,24 @@ public class MyClient {
             DataOutputStream dout = new DataOutputStream(s.getOutputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
+            String tempInputString = "";
+
             // Authenticate
             dout.write(("HELO\n").getBytes());
-            String str = (String) in.readLine(); // Is it neccersary to check for 'OK'?
-            System.out.println("message=" + str);
+            tempInputString = (String) in.readLine(); // Is it neccersary to check for 'OK'?
+            System.out.println("server = " + tempInputString);
 
             dout.write(("AUTH lewis\n").getBytes());
-            String str2 = (String) in.readLine();
-            System.out.println("message=" + str2);
+            tempInputString = (String) in.readLine();
+            System.out.println("server = " + tempInputString);
 
             dout.write(("REDY\n").getBytes());
-            String jobN = (String) in.readLine(); // Client sends first job
-            System.out.println("message=" + jobN);
+            tempInputString = (String) in.readLine(); // Client sends first job
+            System.out.println("server = " + tempInputString);
 
             dout.write(("GETS All\n").getBytes());
             String dataN = (String) in.readLine();
-            System.out.println("message=" + dataN);
+            System.out.println("server = " + dataN);
 
             // Sort through data message
             String[] dataSplit = dataN.split(" ", 3);
@@ -64,19 +66,22 @@ public class MyClient {
 
             //After recieving GETS records
             dout.write(("OK\n").getBytes());
-            String noMoreInfo = (String) in.readLine();
-            System.out.println("message=" + noMoreInfo);
+            tempInputString = (String) in.readLine();
+            System.out.println("server = " + tempInputString);
             dout.write(("REDY\n").getBytes());
 
             String loopMessage = (String) in.readLine();
-            System.out.println("message=" + loopMessage);
+            System.out.println("server = " + loopMessage);
             int counter = 0;
 
             while(loopMessage.substring(0, 4).equals("JOBN")){
 
+                System.out.println("(Loop) Server message is " + loopMessage);
+
                 int currentJobID = ParseJobN(loopMessage);
 
                 String schdMessage = "SCHD " + currentJobID + " " + biggestServerType + " " + counter +"\n";
+                System.out.println("(Loop) Client message is " + schdMessage);
                 dout.write((schdMessage).getBytes());
 
                 loopMessage = (String) in.readLine();   //server sends message saying that the job is beign scheduled
@@ -90,9 +95,11 @@ public class MyClient {
                 }
             }
 
+            System.out.println("(After last loop) Server message is " + loopMessage);
+
             dout.write(("QUIT\n").getBytes());
-            String str9 = (String) in.readLine();
-            System.out.println("message=" + str9);
+            tempInputString = (String) in.readLine();
+            System.out.println("server = " + tempInputString);
 
             dout.flush();
             dout.close();
