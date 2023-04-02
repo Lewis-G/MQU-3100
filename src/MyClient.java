@@ -39,8 +39,10 @@ public class MyClient {
             // Respond with OK to recieve GETS records
             dout.write(("OK\n").getBytes());
 
+            String tempServerType;
             String biggestServerType = "";
             String tempRecord = "";
+            String[] tempRecordSplit;
 
             int numberOfLargestServers = 1;
             int tempNumCores = 0;
@@ -49,17 +51,18 @@ public class MyClient {
             for (int i = 0; i < numberOfRecords; i++) {
 
                 tempRecord = (String) in.readLine();
-                String[] tempRecordSplit = tempRecord.split(" ", 8);
+                tempRecordSplit = tempRecord.split(" ", 8);
 
+                tempServerType = tempRecordSplit[0];
                 tempNumCores = Integer.parseInt(tempRecordSplit[4]);
 
                 if (tempNumCores > greatestNumCores) {
 
-                    biggestServerType = tempRecordSplit[0];
+                    biggestServerType = tempServerType;
                     numberOfLargestServers = 1;
                     greatestNumCores = tempNumCores;
 
-                } else {
+                } else if (tempNumCores == greatestNumCores && biggestServerType.equals(tempServerType)) {
                     numberOfLargestServers++;
                 }
             }
@@ -138,17 +141,6 @@ public class MyClient {
         // String diskRequirement = jobNSplit[6];
 
         return Integer.parseInt(jobID);
-    }
-
-    public static String ParseJCPL(String inputJCPL) {
-
-        // String[] inputJCPLSplit = inputJCPL.split(" ", 5);
-
-        // String jobID = inputJCPLSplit[2];
-        // String serverType = inputJCPLSplit[3];
-        // String serverID = inputJCPLSplit[4];
-
-        return "";
     }
 
 }
