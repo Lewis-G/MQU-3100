@@ -18,19 +18,19 @@ public class MyClient {
             // Authenticate
             dout.write(("HELO\n").getBytes());
             tempInputString = (String) in.readLine();
-            System.out.println("server = " + tempInputString);
+            //System.out.println("server = " + tempInputString);
 
             dout.write(("AUTH lewis\n").getBytes());
             tempInputString = (String) in.readLine();
-            System.out.println("server = " + tempInputString);
+            //System.out.println("server = " + tempInputString);
 
             dout.write(("REDY\n").getBytes());
             tempInputString = (String) in.readLine(); // Client sends first job
-            System.out.println("server = " + tempInputString);
+            //System.out.println("server = " + tempInputString);
 
             dout.write(("GETS All\n").getBytes());
             String dataN = (String) in.readLine();
-            System.out.println("server = " + dataN);
+            //System.out.println("server = " + dataN);
 
             // Sort through data message
             String[] dataSplit = dataN.split(" ", 3);
@@ -67,12 +67,12 @@ public class MyClient {
             // After recieving GETS records
             dout.write(("OK\n").getBytes());
             tempInputString = (String) in.readLine();
-            System.out.println("server = " + tempInputString);
+            //System.out.println("server = " + tempInputString);
             dout.write(("REDY\n").getBytes());
 
             String loopMessage = (String) in.readLine();
             String schdMessage = "";
-            System.out.println("server = " + loopMessage);
+            //System.out.println("server = " + loopMessage);
             int counter = 0;
 
             boolean loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
@@ -80,7 +80,7 @@ public class MyClient {
 
             while (loopMessageIsJOBN || loopMessageIsJCPL) {
 
-                System.out.println("(Loop) Server message is " + loopMessage);
+                //System.out.println("(Loop) Server message is " + loopMessage + "\n");
 
                 if (loopMessageIsJCPL) {
 
@@ -92,7 +92,7 @@ public class MyClient {
                     int currentJobID = ParseJOBN(loopMessage);
 
                     schdMessage = "SCHD " + currentJobID + " " + biggestServerType + " " + counter + "\n";
-                    System.out.println("(Loop) Client message is " + schdMessage);
+                    //System.out.println("(Loop) Client message is " + schdMessage);
                     dout.write((schdMessage).getBytes());
 
                     loopMessage = (String) in.readLine(); // server sends message saying that the job is beign scheduled
@@ -114,11 +114,11 @@ public class MyClient {
 
             } // end of while loop
 
-            System.out.println("(After last loop) Server message is " + loopMessage);
+            //System.out.println("(After last loop) Server message is " + loopMessage);
 
             dout.write(("QUIT\n").getBytes());
             tempInputString = (String) in.readLine();
-            System.out.println("server = " + tempInputString);
+            //System.out.println("server = " + tempInputString);
 
             dout.flush();
             dout.close();
