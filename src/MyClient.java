@@ -83,7 +83,6 @@ public class MyClient {
                 System.out.println("(Loop) Server message is " + loopMessage);
 
                 if (loopMessageIsJCPL) {
-                    // some command after job completed
 
                     dout.write(("REDY\n").getBytes());
                     loopMessage = (String) in.readLine();
@@ -108,6 +107,10 @@ public class MyClient {
                     }
 
                 }//end of else block
+
+            //update while conditions for next iteration
+            loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
+            loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
 
             } // end of while loop
 
