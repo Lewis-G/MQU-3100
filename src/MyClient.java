@@ -17,7 +17,7 @@ public class MyClient {
 
             // Authenticate
             dout.write(("HELO\n").getBytes());
-            tempInputString = (String) in.readLine(); // Is it neccersary to check for 'OK'?
+            tempInputString = (String) in.readLine();
             System.out.println("server = " + tempInputString);
 
             dout.write(("AUTH lewis\n").getBytes());
@@ -41,7 +41,7 @@ public class MyClient {
 
             String biggestServerType = "";
             String tempRecord = "";
-            
+
             int numberOfLargestServers = 1;
             int tempNumCores = 0;
             int greatestNumCores = 0;
@@ -64,36 +64,52 @@ public class MyClient {
                 }
             }
 
-            //After recieving GETS records
+            // After recieving GETS records
             dout.write(("OK\n").getBytes());
             tempInputString = (String) in.readLine();
             System.out.println("server = " + tempInputString);
             dout.write(("REDY\n").getBytes());
 
             String loopMessage = (String) in.readLine();
+            String schdMessage = "";
             System.out.println("server = " + loopMessage);
             int counter = 0;
 
-            while(loopMessage.substring(0, 4).equals("JOBN")){
+            boolean loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
+            boolean loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
+
+            while (loopMessageIsJOBN || loopMessageIsJCPL) {
 
                 System.out.println("(Loop) Server message is " + loopMessage);
 
-                int currentJobID = ParseJobN(loopMessage);
+                if (loopMessageIsJCPL) {
+                    // some command after job completed
 
-                String schdMessage = "SCHD " + currentJobID + " " + biggestServerType + " " + counter +"\n";
-                System.out.println("(Loop) Client message is " + schdMessage);
-                dout.write((schdMessage).getBytes());
+                    dout.write(("REDY\n").getBytes());
+                    loopMessage = (String) in.readLine();
 
-                loopMessage = (String) in.readLine();   //server sends message saying that the job is beign scheduled
+                } else {
 
-                dout.write(("REDY\n").getBytes());
-                loopMessage = (String) in.readLine();   //If there a more jobs, then JOBN is sent
+                    int currentJobID = ParseJOBN(loopMessage);
 
-                counter++;
-                if(counter == numberOfLargestServers){
-                    counter = 0;
-                }
-            }
+                    schdMessage = "SCHD " + currentJobID + " " + biggestServerType + " " + counter + "\n";
+                    System.out.println("(Loop) Client message is " + schdMessage);
+                    dout.write((schdMessage).getBytes());
+
+                    loopMessage = (String) in.readLine(); // server sends message saying that the job is beign scheduled
+
+                    dout.write(("REDY\n").getBytes());
+                    loopMessage = (String) in.readLine(); // If there a more jobs, then JOBN is sent
+
+                    counter++;
+                    if (counter == numberOfLargestServers) {
+                        counter = 0;
+                        // loop of boolean values, after schd bool = false, after jcpl bool = true
+                    }
+
+                }//end of else block
+
+            } // end of while loop
 
             System.out.println("(After last loop) Server message is " + loopMessage);
 
@@ -110,15 +126,26 @@ public class MyClient {
         }
     }
 
-    public static int ParseJobN(String inputJobN){
+    public static int ParseJOBN(String inputJOBN) {
 
-        String[] InputJobNSplit = inputJobN.split(" ", 7);
-        String jobID = InputJobNSplit[2];
-        //String coresRequirement = jobNSplit[4];
-        //String memoryRequirement = jobNSplit[5];
-        //String diskRequirement = jobNSplit[6];
+        String[] InputJOBNSplit = inputJOBN.split(" ", 7);
+        String jobID = InputJOBNSplit[2];
+        // String coresRequirement = jobNSplit[4];
+        // String memoryRequirement = jobNSplit[5];
+        // String diskRequirement = jobNSplit[6];
 
         return Integer.parseInt(jobID);
+    }
+
+    public static String ParseJCPL(String inputJCPL) {
+
+        // String[] inputJCPLSplit = inputJCPL.split(" ", 5);
+
+        // String jobID = inputJCPLSplit[2];
+        // String serverType = inputJCPLSplit[3];
+        // String serverID = inputJCPLSplit[4];
+
+        return "";
     }
 
 }
