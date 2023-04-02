@@ -24,9 +24,7 @@ public class MyClient {
 
             dout.write(("GETS All\n").getBytes());
             String dataN = (String) in.readLine();  //ds-server sends 'DATA nRecs recLen'
-            //This is the first message in response to GETS
-            //nRecs indicates the number of subsequent messages ...
-            //This will be used as a condition of the loop
+            //nRecs indicates the number of subsequent messages, used in the for loop condition
 
             //Split the DATA message, and isolate nRecs
             String[] dataSplit = dataN.split(" ", 3);
@@ -42,7 +40,7 @@ public class MyClient {
             int tempNumCores = 0;   //Stores the number of cores, taken from ds-server message
             int greatestNumCores = -1;  //Stores the greatest number of cores at any point of the loop
 
-            String tempServerType;   //Stores ds-server type, taken from ds-server message
+            String tempServerType;   //Stores server type, taken from ds-server message
             String biggestServerType = "";  //Stores the name of first known largest server at any point of the loop
 
             int numberOfLargestServers = 1; //Stores the number of servers that belong to the largest server type
