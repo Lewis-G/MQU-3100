@@ -69,7 +69,7 @@ public class MyClient {
 
             // After recieving GETS records
             dout.write(("OK\n").getBytes());
-            in.readLine();
+            in.readLine();    //ds-server sends '.'
 
             String schdMessage = "";    //Stores each SCHD String before sending the command
             int counter = 0;    //Stores the current server in the queue
