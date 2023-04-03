@@ -5,7 +5,7 @@
 > git clone https://github.com/Lewis-G/MQU-3100.git
 
 
-**Send custom commands to the ds-server**
+**Run the ds-server as a simulation, options can be configured**
 
 _Run ds-server_
 
