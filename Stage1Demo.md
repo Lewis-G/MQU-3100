@@ -24,7 +24,7 @@ _In files application, move the zipped test script to the pre-compiled folder_
 
 _Unzip the zipped test script_
 
-> tar xvf week06.tar
+> tar xvf MQU-3100/distsys-MQ/ds-sim/src/pre-compiled/week06.tar
 
 _Compile ds-client_
 
