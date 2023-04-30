@@ -1,7 +1,9 @@
+package MyClient;
+
 import java.io.*;
 import java.net.*;
 
-public class MyClient {
+public class RoundRobin {
 
     Socket socket;
 
