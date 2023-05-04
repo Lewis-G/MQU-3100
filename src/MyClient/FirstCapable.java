@@ -34,12 +34,16 @@ public class FirstCapable {
 
             while (loopMessageIsJOBN || loopMessageIsJCPL) {
 
+                //System.out.println("Server message is :" + loopMessage);
+
                 if (loopMessageIsJOBN) {
 
                     jobn.ParseJOBN(loopMessage);
 
-                    toServer = "GETS Capable " + jobn.getJobCores() + " " + jobn.getJobMemory() + " "
-                            + jobn.getJobDisk() + "\n";
+                    toServer = "GETS Capable " + jobn.getJobCores() + " " + jobn.getJobMemory() + " " + jobn.getJobDisk() + "\n";
+
+                    //System.out.println(toServer);
+                    
                     dout.write((toServer).getBytes());
 
                     // ds-server sends 'DATA nRecs recLen'
@@ -64,8 +68,10 @@ public class FirstCapable {
                         dout.write(("OK\n").getBytes());
                         in.readLine(); // ds-server sends '.'
 
-                        toServer = "SCHD " + jobn.getJobID() + " " + getsMessage.getServerType() + " "
-                                + getsMessage.getServerID() + "\n";
+                        toServer = "SCHD " + jobn.getJobID() + " " + getsMessage.getServerType() + " " + getsMessage.getServerID() + "\n";
+                        
+                        //System.out.println(toServer);
+
                         dout.write((toServer).getBytes());
 
                         in.readLine(); // ds-server confirms that the job is being scheduled

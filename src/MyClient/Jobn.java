@@ -18,9 +18,9 @@ public class Jobn {
         messageSplit = message.split(" ", 7);
 
         jobID = Integer.parseInt(messageSplit[2]);
-        jobCores = Integer.parseInt(messageSplit[2]);
-        jobMemory = Integer.parseInt(messageSplit[2]);
-        jobDisk = Integer.parseInt(messageSplit[2]);
+        jobCores = Integer.parseInt(messageSplit[4]);
+        jobMemory = Integer.parseInt(messageSplit[5]);
+        jobDisk = Integer.parseInt(messageSplit[6]);
 
         return;
     }

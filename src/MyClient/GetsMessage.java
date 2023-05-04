@@ -25,8 +25,9 @@ public class GetsMessage {
 
         serverDetailsSplit = message.split(" ", 3);
 
-        serverID = Integer.parseInt(serverDetailsSplit[0]);
-        serverType = serverDetailsSplit[1];
+        serverType = serverDetailsSplit[0];
+        serverID = Integer.parseInt(serverDetailsSplit[1]);
+        
         return;
     }
 
