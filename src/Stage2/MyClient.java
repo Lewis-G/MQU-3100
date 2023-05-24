@@ -15,16 +15,43 @@ public class MyClient {
             out = new DataOutputStream(socket.getOutputStream());
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (IOException e) {
+            e.printStackTrace();
         } 
+    }
+
+    public void Send(String message){
+        try {
+            out.write((message).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void Receive(){
+        try {
+            in.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String ReceiveString(){
+        try {
+            return in.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static void main(String[] args) {
 
+        // MyClient constructor creates a socket connection with input and output
+        MyClient myClient = new MyClient();
 
-
-
+        // Authenticate
+        myClient.Send("HELO\n");
 
         
         try {
