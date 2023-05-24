@@ -52,7 +52,11 @@ public class MyClient {
 
         // Authenticate
         myClient.Send("HELO\n");
+        myClient.Receive(); // ds-server sends 'OK'
+        myClient.Send("AUTH lewis\n");
+        myClient.Receive(); // ds-server sends 'OK'
 
+        myClient.Send("HELO\n");
         
         try {
 
