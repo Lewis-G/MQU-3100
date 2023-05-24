@@ -3,13 +3,13 @@ package Stage2;
 import java.io.*;
 import java.net.*;
 
-public class Main {
+public class MyClient {
 
     Socket socket;
     DataOutputStream out;
     BufferedReader in;
 
-    Main(){
+    MyClient(){
         try {
             socket = new Socket("localhost", 50000);
             out = new DataOutputStream(socket.getOutputStream());
@@ -21,6 +21,12 @@ public class Main {
     }
 
     public static void main(String[] args) {
+
+
+
+
+
+        
         try {
 
             // Create a socket with input and output
