@@ -1,5 +1,3 @@
-package MyClient;
-
 import java.io.*;
 import java.net.*;
 
