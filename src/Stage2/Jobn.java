@@ -1,4 +1,4 @@
-package MyClient;
+package Stage2;
 
 public class Jobn {
     

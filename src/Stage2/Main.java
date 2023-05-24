@@ -1,4 +1,4 @@
-package MyClient;
+package Stage2;
 
 import java.io.*;
 import java.net.*;
