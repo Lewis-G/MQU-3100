@@ -3,9 +3,22 @@ package MyClient;
 import java.io.*;
 import java.net.*;
 
-public class FirstCapable {
+public class Main {
 
     Socket socket;
+    DataOutputStream out;
+    BufferedReader in;
+
+    Main(){
+        try {
+            socket = new Socket("localhost", 50000);
+            out = new DataOutputStream(socket.getOutputStream());
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        } catch (Exception e) {
+            System.out.println(e);
+        } 
+    }
 
     public static void main(String[] args) {
         try {

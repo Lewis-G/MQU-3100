@@ -1,3 +1,4 @@
 [submodule "distsys-MQ/ds-sim"]
 	path = distsys-MQ/ds-sim
 	url = https://github.com/distsys-MQ/ds-sim.git
+	ignore = dirty
