@@ -9,7 +9,7 @@ public class MyClient {
     DataOutputStream out;
     BufferedReader in;
 
-    MyClient(){
+    MyClient() {
         try {
             socket = new Socket("localhost", 50000);
             out = new DataOutputStream(socket.getOutputStream());
@@ -17,10 +17,20 @@ public class MyClient {
 
         } catch (IOException e) {
             e.printStackTrace();
-        } 
+        }
     }
 
-    public void Send(String message){
+    public void EndConnection(){
+        try {
+            out.flush();
+            out.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void Send(String message) {
         try {
             out.write((message).getBytes());
         } catch (IOException e) {
@@ -28,7 +38,7 @@ public class MyClient {
         }
     }
 
-    public void Receive(){
+    public void Receive() {
         try {
             in.readLine();
         } catch (IOException e) {
@@ -36,9 +46,9 @@ public class MyClient {
         }
     }
 
-    public String ReceiveString(){
+    public String ReceiveString() {
         try {
-            return in.readLine();
+            return (String) in.readLine();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -56,102 +66,76 @@ public class MyClient {
         myClient.Send("AUTH lewis\n");
         myClient.Receive(); // ds-server sends 'OK'
 
-        myClient.Send("HELO\n");
-        
-        try {
+        myClient.Send("REDY\n");
+        String loopMessage = myClient.ReceiveString(); // ds-server sends first job
 
-            // Create a socket with input and output
-            Socket s = new Socket("localhost", 50000);
-            DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-            BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+        // while loop conditions
+        boolean loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
+        boolean loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
 
-            // Authenticate
-            dout.write(("HELO\n").getBytes());
-            in.readLine(); // ds-server sends 'OK'
-            dout.write(("AUTH lewis\n").getBytes());
-            in.readLine(); // ds-server sends 'OK'
+        // Helper class
+        Message myMessage = new Message();
+        String tempString;
+        int nRecs;
 
-            dout.write(("REDY\n").getBytes());
-            String loopMessage = (String) in.readLine(); // ds-server sends first job
-            String toServer;
+        while (loopMessageIsJOBN || loopMessageIsJCPL) {
 
-            // while loop conditions
-            boolean loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
-            boolean loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
+            if (loopMessageIsJOBN) {
 
-            Jobn jobn = new Jobn();
-            GetsMessage getsMessage = new GetsMessage();
+                myMessage.ParseJOBN(loopMessage);
 
-            while (loopMessageIsJOBN || loopMessageIsJCPL) {
+                tempString = myMessage.createGetsAvail();
 
-                //System.out.println("Server message is :" + loopMessage);
+                myClient.Send(tempString);
 
-                if (loopMessageIsJOBN) {
+                // ds-server sends 'DATA nRecs recLen'
+                tempString = myClient.ReceiveString();
 
-                    jobn.ParseJOBN(loopMessage);
+                myMessage.ParseDataMessage(tempString);
+                nRecs = myMessage.getNRecs();
 
-                    toServer = "GETS Capable " + jobn.getJobCores() + " " + jobn.getJobMemory() + " " + jobn.getJobDisk() + "\n";
+                if (nRecs > 0) {
 
-                    //System.out.println(toServer);
-                    
-                    dout.write((toServer).getBytes());
+                    // Send Ok to preceed
+                    myClient.Send("OK\n");
 
-                    // ds-server sends 'DATA nRecs recLen'
-                    // Isolate nRecs by parsing this message with the GetsMessage object
-                    getsMessage.ParseDataMessage(in.readLine());
+                    // Save first server details
+                    tempString = myClient.ReceiveString();
+                    myMessage.ParseServerDetails(tempString);
 
-                    // Send Ok to preceed,
-                    dout.write(("OK\n").getBytes());
+                    // Temporary, skip rest of server messages
+                    for (int i = 1; i < nRecs; i++) {
+                        myClient.Receive();
+                    }
 
-                    if (getsMessage.getNRecs() > 0) {
+                    // After recieving GETS records
+                    myClient.Send("OK\n");
+                    myClient.Receive(); // ds-server sends '.'
 
-                        // Get the server details from the first message
-                        
-                        getsMessage.ParseServerDetails(in.readLine());
+                    tempString = myMessage.createSchd();
 
-                        // skip rest of GETS messages
-                        for (int i = 1; i < getsMessage.getNRecs(); i++) {
-                            in.readLine();
-                        }
+                    myClient.Send(tempString);
 
-                        // After recieving GETS records
-                        dout.write(("OK\n").getBytes());
-                        in.readLine(); // ds-server sends '.'
+                }
 
-                        toServer = "SCHD " + jobn.getJobID() + " " + getsMessage.getServerType() + " " + getsMessage.getServerID() + "\n";
-                        
-                        //System.out.println(toServer);
+                // Either confirms schd or receives . if no servers avail
+                myClient.Receive();
 
-                        dout.write((toServer).getBytes());
+            }   //End of IfJOBN
 
-                        in.readLine(); // ds-server confirms that the job is being scheduled
+            // Send REDY to receive next message
+            myClient.Send("REDY\n");
 
-                    } else {
-                        in.readLine(); // ds-server sends .
+            loopMessage = myClient.ReceiveString(); // Server may send JOBN or JCPL
 
-                    } // End of nRecs if/else statements
+            // update while conditions for next iteration
+            loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
+            loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
 
-                } // End of loopMessageIsJOBN
-
-                // Send REDY to receive next message
-                dout.write(("REDY\n").getBytes());
-                loopMessage = (String) in.readLine(); //Server may send JOBN or JCPL
-
-                // update while conditions for next iteration
-                loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
-                loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
-
-            } // End of while loop
-
-            // After NONE is sent, end communication and close the connection
-            dout.write(("QUIT\n").getBytes());
-            in.readLine();
-            dout.flush();
-            dout.close();
-            s.close();
-
-        } catch (Exception e) {
-            System.out.println(e);
         }
+
+        myClient.Send("QUIT\n");
+        myClient.Receive();
+        myClient.EndConnection();
     }
 }

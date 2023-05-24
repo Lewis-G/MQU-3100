@@ -59,6 +59,8 @@ public class Message {
         return "SCHD " + jobID + " " + serverType + " " + serverID + "\n";
     }
 
-    
+    public int getNRecs(){
+        return nRecs;
+    }    
 
 }
