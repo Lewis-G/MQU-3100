@@ -55,16 +55,40 @@ public class MyClient {
         }
     }
 
+    public void Authenticate(){
+        this.Send("HELO\n");
+        this.Receive(); // ds-server sends 'OK'
+        this.Send("AUTH lewis\n");
+        this.Receive(); // ds-server sends 'OK'
+    }
+
+    public void ReceiveGets(int nRecs, Message message, String tempString){
+        
+        // After receiving DATA and Sending Ok to preceed
+        // Save first server details
+        tempString = this.ReceiveString();
+        message.ParseServerDetails(tempString);
+
+        // Temporary, skip rest of server messages
+        for (int i = 1; i < nRecs; i++) {
+            this.Receive();
+        }
+
+        // After recieving Server details records
+        this.Send("OK\n");
+        this.Receive(); // ds-server sends '.'
+
+        tempString = message.createSchd();
+
+        this.Send(tempString);
+    }
+
     public static void main(String[] args) {
 
         // MyClient constructor creates a socket connection with input and output
         MyClient myClient = new MyClient();
 
-        // Authenticate
-        myClient.Send("HELO\n");
-        myClient.Receive(); // ds-server sends 'OK'
-        myClient.Send("AUTH lewis\n");
-        myClient.Receive(); // ds-server sends 'OK'
+        myClient.Authenticate();
 
         myClient.Send("REDY\n");
         String loopMessage = myClient.ReceiveString(); // ds-server sends first job
@@ -84,6 +108,7 @@ public class MyClient {
 
                 myMessage.ParseJOBN(loopMessage);
 
+                // Create gets command with larger than necersary cores?
                 tempString = myMessage.createGetsAvail();
 
                 myClient.Send(tempString);
@@ -94,31 +119,33 @@ public class MyClient {
                 myMessage.ParseDataMessage(tempString);
                 nRecs = myMessage.getNRecs();
 
+                // Send Ok to preceed
+                myClient.Send("OK\n");
+
                 if (nRecs > 0) {
+
+                    // Could also try queueing jobs if no servers are available
+                    myClient.ReceiveGets(nRecs, myMessage, tempString);
+
+                } else {
+
+                    myClient.Receive(); // Receive . after sending OK
+                    
+                    tempString = myMessage.createGetsCapable();
+                    myClient.Send(tempString);
+
+                    // ds-server sends 'DATA nRecs recLen'
+                    tempString = myClient.ReceiveString();
+                    myMessage.ParseDataMessage(tempString);
+                    nRecs = myMessage.getNRecs();
 
                     // Send Ok to preceed
                     myClient.Send("OK\n");
 
-                    // Save first server details
-                    tempString = myClient.ReceiveString();
-                    myMessage.ParseServerDetails(tempString);
-
-                    // Temporary, skip rest of server messages
-                    for (int i = 1; i < nRecs; i++) {
-                        myClient.Receive();
-                    }
-
-                    // After recieving GETS records
-                    myClient.Send("OK\n");
-                    myClient.Receive(); // ds-server sends '.'
-
-                    tempString = myMessage.createSchd();
-
-                    myClient.Send(tempString);
-
+                    myClient.ReceiveGets(nRecs, myMessage, tempString);
                 }
 
-                // Either confirms schd or receives . if no servers avail
+                // Confirmation of job
                 myClient.Receive();
 
             }   //End of IfJOBN
