@@ -47,6 +47,12 @@ public class Message {
         return;
     }
 
+    public String getServerType(String message){
+
+        serverSplit = message.split(" ", 3);
+        return serverSplit[0];;
+    }
+
     public String createGetsAvail(){
         return "GETS Avail " + jobCores + " " + jobMemory + " " + jobDisk + "\n";
     }

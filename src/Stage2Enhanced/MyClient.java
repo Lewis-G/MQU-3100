@@ -9,6 +9,7 @@ public class MyClient {
     DataOutputStream out;
     BufferedReader in;
     Message message;
+    Server server;
 
     MyClient() {
         try {
@@ -16,6 +17,7 @@ public class MyClient {
             this.out = new DataOutputStream(socket.getOutputStream());
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.message = new Message();
+            this.server = new Server();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,7 +72,41 @@ public class MyClient {
     }
 
     public void getsAll(){
-        
+
+        this.send("GETS ALL\n");
+
+        String dataMessage = this.receiveString();
+
+        this.message.parseDataMessage(dataMessage);
+
+        int nRecs = this.message.getNRecs();
+
+        this.send("OK\n");
+
+        String lastServerType = "";
+        String temporaryString;
+        String currentServerType;
+        int serverCount;
+
+        for (int i = 0; i < nRecs; i++){
+
+            temporaryString = this.receiveString();
+            currentServerType = this.message.getServerType(temporaryString);
+
+            if(currentServerType.equals(lastServerType)){
+                serverCount++;
+
+            } else {
+                this.server.addServerType(lastServerType, serverCount);
+                serverCount = 0;
+            }
+
+            lastServerType = currentServerType;
+        }
+
+        // After recieving Server details records
+        this.send("OK\n");
+        this.receive(); // ds-server sends '.'
     }
 
     public void receiveGets(int nRecs, String tempString){
