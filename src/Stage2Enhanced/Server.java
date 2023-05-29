@@ -10,11 +10,10 @@ public class Server {
         this.serverTypes = new ArrayList<>();
     }
 
-    public void addServerType(String inputServerType){
+    public void addServerType(String serverType, int numberOfServers){
 
         this.serverTypes.add(inputServerType);
-        
-
+        this.queueLengths.add(new int[numberOfServers]);
     }
 
 

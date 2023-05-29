@@ -8,19 +8,25 @@ public class MyClient {
     Socket socket;
     DataOutputStream out;
     BufferedReader in;
+    Message message;
 
     MyClient() {
         try {
-            socket = new Socket("localhost", 50000);
-            out = new DataOutputStream(socket.getOutputStream());
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.socket = new Socket("localhost", 50000);
+            this.out = new DataOutputStream(socket.getOutputStream());
+            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.message = new Message();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void EndConnection(){
+    public Message getMessage(){
+        return this.message;
+    }
+
+    public void endConnection(){
         try {
             out.flush();
             out.close();
@@ -30,15 +36,16 @@ public class MyClient {
         }
     }
 
-    public void Send(String message) {
+    public void send(String toServer) {
         try {
-            out.write((message).getBytes());
+            out.write((toServer).getBytes());
+            out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void Receive() {
+    public void receive() {
         try {
             in.readLine();
         } catch (IOException e) {
@@ -46,7 +53,7 @@ public class MyClient {
         }
     }
 
-    public String ReceiveString() {
+    public String receiveString() {
         try {
             return (String) in.readLine();
         } catch (IOException e) {
@@ -55,32 +62,36 @@ public class MyClient {
         }
     }
 
-    public void Authenticate(){
-        this.Send("HELO\n");
-        this.Receive(); // ds-server sends 'OK'
-        this.Send("AUTH lewis\n");
-        this.Receive(); // ds-server sends 'OK'
+    public void authenticate(){
+        this.send("HELO\n");
+        this.receive(); // ds-server sends 'OK'
+        this.send("AUTH lewis\n");
+        this.receive(); // ds-server sends 'OK'
     }
 
-    public void ReceiveGets(int nRecs, Message message, String tempString){
+    public void getsAll(){
+        
+    }
+
+    public void receiveGets(int nRecs, String tempString){
         
         // After receiving DATA and Sending Ok to preceed
         // Save first server details
-        tempString = this.ReceiveString();
-        message.ParseServerDetails(tempString);
+        tempString = this.receiveString();
+        this.message.ParseServerDetails(tempString);
 
         // Temporary, skip rest of server messages
         for (int i = 1; i < nRecs; i++) {
-            this.Receive();
+            this.receive();
         }
 
         // After recieving Server details records
-        this.Send("OK\n");
-        this.Receive(); // ds-server sends '.'
+        this.send("OK\n");
+        this.receive(); // ds-server sends '.'
 
-        tempString = message.createSchd();
+        tempString = this.message.createSchd();
 
-        this.Send(tempString);
+        this.send(tempString);
     }
 
     public static void main(String[] args) {
@@ -88,17 +99,17 @@ public class MyClient {
         // MyClient constructor creates a socket connection with input and output
         MyClient myClient = new MyClient();
 
-        myClient.Authenticate();
+        myClient.authenticate();
 
-        myClient.Send("REDY\n");
-        String loopMessage = myClient.ReceiveString(); // ds-server sends first job
+        myClient.send("REDY\n");
+        String loopMessage = myClient.receiveString(); // ds-server sends first job
 
         // while loop conditions
         boolean loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
         boolean loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
 
         // Helper class
-        Message myMessage = new Message();
+        Message myMessage = myClient.getMessage();
         String tempString;
         int nRecs;
 
@@ -111,49 +122,49 @@ public class MyClient {
                 // Create gets command with larger than necersary cores?
                 tempString = myMessage.createGetsAvail();
 
-                myClient.Send(tempString);
+                myClient.send(tempString);
 
                 // ds-server sends 'DATA nRecs recLen'
-                tempString = myClient.ReceiveString();
+                tempString = myClient.receiveString();
 
                 myMessage.ParseDataMessage(tempString);
                 nRecs = myMessage.getNRecs();
 
                 // Send Ok to preceed
-                myClient.Send("OK\n");
+                myClient.send("OK\n");
 
                 if (nRecs > 0) {
 
                     // Could also try queueing jobs if no servers are available
-                    myClient.ReceiveGets(nRecs, myMessage, tempString);
+                    myClient.receiveGets(nRecs, tempString);
 
                 } else {
 
-                    myClient.Receive(); // Receive . after sending OK
+                    myClient.receive(); // Receive . after sending OK
                     
                     tempString = myMessage.createGetsCapable();
-                    myClient.Send(tempString);
+                    myClient.send(tempString);
 
                     // ds-server sends 'DATA nRecs recLen'
-                    tempString = myClient.ReceiveString();
+                    tempString = myClient.receiveString();
                     myMessage.ParseDataMessage(tempString);
                     nRecs = myMessage.getNRecs();
 
                     // Send Ok to preceed
-                    myClient.Send("OK\n");
+                    myClient.send("OK\n");
 
-                    myClient.ReceiveGets(nRecs, myMessage, tempString);
+                    myClient.receiveGets(nRecs, tempString);
                 }
 
                 // Confirmation of job
-                myClient.Receive();
+                myClient.receive();
 
             }   //End of IfJOBN
 
             // Send REDY to receive next message
-            myClient.Send("REDY\n");
+            myClient.send("REDY\n");
 
-            loopMessage = myClient.ReceiveString(); // Server may send JOBN or JCPL
+            loopMessage = myClient.receiveString(); // Server may send JOBN or JCPL
 
             // update while conditions for next iteration
             loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
@@ -161,8 +172,8 @@ public class MyClient {
 
         }
 
-        myClient.Send("QUIT\n");
-        myClient.Receive();
-        myClient.EndConnection();
+        myClient.send("QUIT\n");
+        myClient.receive();
+        myClient.endConnection();
     }
 }

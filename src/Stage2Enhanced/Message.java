@@ -21,7 +21,7 @@ public class Message {
         serverSplit = new String[3];
     }
 
-    public void ParseJOBN(String message){
+    public void parseJOBN(String message){
 
         jobnSplit = message.split(" ", 7);
 
@@ -32,14 +32,14 @@ public class Message {
         return;
     }
 
-    public void ParseDataMessage(String message){
+    public void parseDataMessage(String message){
 
         dataSplit = message.split(" ", 3);
         nRecs = Integer.valueOf(dataSplit[1]);
         return;
     }
 
-    public void ParseServerDetails(String message){
+    public void parseServerDetails(String message){
 
         serverSplit = message.split(" ", 3);
         serverType = serverSplit[0];
