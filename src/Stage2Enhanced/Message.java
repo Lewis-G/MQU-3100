@@ -47,10 +47,12 @@ public class Message {
         return;
     }
 
-    public String getServerType(String message){
+    public String getServerType(){
+        return serverType;
+    }
 
-        serverSplit = message.split(" ", 3);
-        return serverSplit[0];;
+    public int getServeID(){
+        return serverID;
     }
 
     public String createGetsAvail(){

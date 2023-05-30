@@ -71,7 +71,7 @@ public class MyClient {
         this.receive(); // ds-server sends 'OK'
     }
 
-    public void getsAll(){
+    public void sendReceiveGetsAll(){
 
         this.send("GETS ALL\n");
 
@@ -86,12 +86,13 @@ public class MyClient {
         String lastServerType = "";
         String temporaryString;
         String currentServerType;
-        int serverCount;
+        int serverCount = 0;
 
         for (int i = 0; i < nRecs; i++){
 
             temporaryString = this.receiveString();
-            currentServerType = this.message.getServerType(temporaryString);
+            this.message.parseServerDetails(temporaryString);
+            currentServerType = this.message.getServerType();
 
             if(currentServerType.equals(lastServerType)){
                 serverCount++;
@@ -114,7 +115,7 @@ public class MyClient {
         // After receiving DATA and Sending Ok to preceed
         // Save first server details
         tempString = this.receiveString();
-        this.message.ParseServerDetails(tempString);
+        this.message.parseServerDetails(tempString);
 
         // Temporary, skip rest of server messages
         for (int i = 1; i < nRecs; i++) {
@@ -130,6 +131,56 @@ public class MyClient {
         this.send(tempString);
     }
 
+    public void receiveGetsEnhanced(int nRecs, String tempString){
+        
+        // After receiving DATA and Sending Ok to preceed
+
+        // The first server in the list to set the lowestQueue variable
+        tempString = this.receiveString();
+        this.message.parseServerDetails(tempString);
+
+        String currentServerType = this.message.getServerType();
+        int currentServerID = this.message.getServeID();
+        int currentQueueLength = this.server.getQueueLength(currentServerType, currentServerID);
+
+        if(currentQueueLength == 0){
+            tempString = this.message.createSchd();
+            this.send(tempString);
+            return;
+        }
+
+        String lowestServerType = currentServerType;
+        int lowestServerID = currentServerID;
+        int lowestQueueLength = currentQueueLength;
+        String lowestServerDetails = tempString;
+
+        // Iterate list searching for a queue length of 0.
+        // If there is no queue length equal to 0, use the server
+        // with the shortest queue
+
+        for (int i = 1; i < nRecs; i++){
+
+            tempString = this.receiveString();
+            this.message.parseServerDetails(tempString);
+
+            currentServerType = this.message.getServerType();
+            currentServerID = this.message.getServeID();
+            currentQueueLength = this.server.getQueueLength(currentServerType, currentServerID);
+
+            if (currentQueueLength < lowestQueueLength){
+                lowestServerType = currentServerType;
+                lowestServerID = currentServerID;
+                lowestQueueLength = currentQueueLength;
+                lowestServerDetails = tempString;
+            }
+        } // End of server details messages
+
+        this.message.parseServerDetails(lowestServerDetails);
+        this.server.increaseQueueLength(lowestServerType, lowestServerID);
+        
+        tempString = this.message.createSchd();
+        this.send(tempString);
+    }
     public static void main(String[] args) {
 
         // MyClient constructor creates a socket connection with input and output
@@ -153,7 +204,7 @@ public class MyClient {
 
             if (loopMessageIsJOBN) {
 
-                myMessage.ParseJOBN(loopMessage);
+                myMessage.parseJOBN(loopMessage);
 
                 // Create gets command with larger than necersary cores?
                 tempString = myMessage.createGetsAvail();
@@ -163,7 +214,7 @@ public class MyClient {
                 // ds-server sends 'DATA nRecs recLen'
                 tempString = myClient.receiveString();
 
-                myMessage.ParseDataMessage(tempString);
+                myMessage.parseDataMessage(tempString);
                 nRecs = myMessage.getNRecs();
 
                 // Send Ok to preceed
@@ -183,7 +234,7 @@ public class MyClient {
 
                     // ds-server sends 'DATA nRecs recLen'
                     tempString = myClient.receiveString();
-                    myMessage.ParseDataMessage(tempString);
+                    myMessage.parseDataMessage(tempString);
                     nRecs = myMessage.getNRecs();
 
                     // Send Ok to preceed

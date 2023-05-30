@@ -68,7 +68,7 @@ public class MyClient {
         // After receiving DATA and Sending Ok to preceed
         // Save first server details
         tempString = this.receiveString();
-        message.ParseServerDetails(tempString);
+        message.parseServerDetails(tempString);
 
         // Temporary, skip rest of server messages
         for (int i = 1; i < nRecs; i++) {
@@ -107,7 +107,7 @@ public class MyClient {
 
             if (loopMessageIsJOBN) {
 
-                myMessage.ParseJOBN(loopMessage);
+                myMessage.parseJOBN(loopMessage);
 
                 // Create gets command with larger than necersary cores?
                 tempString = myMessage.createGetsAvail();
@@ -117,7 +117,7 @@ public class MyClient {
                 // ds-server sends 'DATA nRecs recLen'
                 tempString = myClient.receiveString();
 
-                myMessage.ParseDataMessage(tempString);
+                myMessage.parseDataMessage(tempString);
                 nRecs = myMessage.getNRecs();
 
                 // Send Ok to preceed
@@ -137,7 +137,7 @@ public class MyClient {
 
                     // ds-server sends 'DATA nRecs recLen'
                     tempString = myClient.receiveString();
-                    myMessage.ParseDataMessage(tempString);
+                    myMessage.parseDataMessage(tempString);
                     nRecs = myMessage.getNRecs();
 
                     // Send Ok to preceed
