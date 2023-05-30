@@ -9,7 +9,7 @@ public class Server {
 
     Server(){
         this.serverTypes = new ArrayList<>();
-        this.serverTypes = new ArrayList<>();
+        this.queueLengths = new ArrayList<>();
     }
 
     public void addServerType(String serverType, int numberOfServers){
@@ -36,7 +36,4 @@ public class Server {
         this.queueLengths.get(serverTypePlacement)[serverID]--;
         return;
     }
-
-
-
 }

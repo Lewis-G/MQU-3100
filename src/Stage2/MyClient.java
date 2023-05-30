@@ -149,7 +149,7 @@ public class MyClient {
                 // Confirmation of job
                 myClient.receive();
 
-            }   //End of IfJOBN
+            }
 
             // Send REDY to receive next message
             myClient.send("REDY\n");

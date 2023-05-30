@@ -28,6 +28,10 @@ public class MyClient {
         return this.message;
     }
 
+    public Server getServer(){
+        return this.server;
+    }
+
     public void endConnection(){
         try {
             out.flush();
@@ -73,7 +77,7 @@ public class MyClient {
 
     public void sendReceiveGetsAll(){
 
-        this.send("GETS ALL\n");
+        this.send("GETS All\n");
 
         String dataMessage = this.receiveString();
 
@@ -82,11 +86,11 @@ public class MyClient {
         int nRecs = this.message.getNRecs();
 
         this.send("OK\n");
-
+        
         String lastServerType = "";
         String temporaryString;
-        String currentServerType;
-        int serverCount = 0;
+        String currentServerType = "";
+        int serverCount = 1;
 
         for (int i = 0; i < nRecs; i++){
 
@@ -94,16 +98,22 @@ public class MyClient {
             this.message.parseServerDetails(temporaryString);
             currentServerType = this.message.getServerType();
 
-            if(currentServerType.equals(lastServerType)){
-                serverCount++;
+            if(!currentServerType.equals(lastServerType)){
+                
+                if(i != 0){
+                    this.server.addServerType(lastServerType, serverCount);
+                    serverCount = 1;
+                }
 
             } else {
-                this.server.addServerType(lastServerType, serverCount);
-                serverCount = 0;
+                serverCount++;
             }
 
             lastServerType = currentServerType;
         }
+
+        // Add the last server type
+        this.server.addServerType(lastServerType, serverCount);
 
         // After recieving Server details records
         this.send("OK\n");
@@ -140,10 +150,19 @@ public class MyClient {
         this.message.parseServerDetails(tempString);
 
         String currentServerType = this.message.getServerType();
-        int currentServerID = this.message.getServeID();
+        int currentServerID = this.message.getServerID();
         int currentQueueLength = this.server.getQueueLength(currentServerType, currentServerID);
 
         if(currentQueueLength == 0){
+
+            // Skip rest of server details messages
+            for (int i = 1; i < nRecs; i++){
+                this.receive();
+            }
+
+            this.send("OK\n");
+            this.receive(); // Receive .
+
             tempString = this.message.createSchd();
             this.send(tempString);
             return;
@@ -164,7 +183,7 @@ public class MyClient {
             this.message.parseServerDetails(tempString);
 
             currentServerType = this.message.getServerType();
-            currentServerID = this.message.getServeID();
+            currentServerID = this.message.getServerID();
             currentQueueLength = this.server.getQueueLength(currentServerType, currentServerID);
 
             if (currentQueueLength < lowestQueueLength){
@@ -178,6 +197,9 @@ public class MyClient {
         this.message.parseServerDetails(lowestServerDetails);
         this.server.increaseQueueLength(lowestServerType, lowestServerID);
         
+        this.send("OK\n");
+        this.receive(); // Receive .
+
         tempString = this.message.createSchd();
         this.send(tempString);
     }
@@ -191,14 +213,22 @@ public class MyClient {
         myClient.send("REDY\n");
         String loopMessage = myClient.receiveString(); // ds-server sends first job
 
+        myClient.sendReceiveGetsAll();
+
         // while loop conditions
         boolean loopMessageIsJOBN = loopMessage.substring(0, 4).equals("JOBN");
         boolean loopMessageIsJCPL = loopMessage.substring(0, 4).equals("JCPL");
 
-        // Helper class
+        // Helper classes
         Message myMessage = myClient.getMessage();
+        Server myServer = myClient.getServer();
+
         String tempString;
         int nRecs;
+        int queueLength;
+
+        int jcplServerID;
+        String jcplServerType = "";
 
         while (loopMessageIsJOBN || loopMessageIsJCPL) {
 
@@ -240,13 +270,24 @@ public class MyClient {
                     // Send Ok to preceed
                     myClient.send("OK\n");
 
-                    myClient.receiveGets(nRecs, tempString);
+                    myClient.receiveGetsEnhanced(nRecs, tempString);
                 }
 
                 // Confirmation of job
                 myClient.receive();
 
-            }   //End of IfJOBN
+            } else {
+
+                myMessage.parseJCPLMessage(loopMessage);
+                jcplServerID = myMessage.getServerID();
+                jcplServerType = myMessage.getServerType();
+
+                queueLength = myServer.getQueueLength(jcplServerType, jcplServerID);
+
+                if (queueLength > 0){
+                    myServer.decreaseQueueLength(jcplServerType, jcplServerID);
+                }
+            }
 
             // Send REDY to receive next message
             myClient.send("REDY\n");

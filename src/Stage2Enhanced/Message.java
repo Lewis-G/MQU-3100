@@ -14,11 +14,13 @@ public class Message {
     String[] jobnSplit;
     String[] dataSplit;
     String[] serverSplit;
+    String[] jcplSplit;
 
     Message(){
         jobnSplit = new String[7];
         dataSplit = new String[3];
         serverSplit = new String[3];
+        jcplSplit = new String[5];
     }
 
     public void parseJOBN(String message){
@@ -47,11 +49,19 @@ public class Message {
         return;
     }
 
+    public void parseJCPLMessage(String message){
+
+        jcplSplit = message.split(" ", 5);
+        serverType = jcplSplit[3];
+        serverID = Integer.parseInt(jcplSplit[4]);
+        return;
+    }
+
     public String getServerType(){
         return serverType;
     }
 
-    public int getServeID(){
+    public int getServerID(){
         return serverID;
     }
 
